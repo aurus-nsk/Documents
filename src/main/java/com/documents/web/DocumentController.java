@@ -1,7 +1,9 @@
 package com.documents.web;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -80,14 +82,28 @@ public class DocumentController {
 		return "index";
 	}
 	
+	
+	//загружаем файлы
 	@RequestMapping(value="/read", method = RequestMethod.POST)
 	public String read(@RequestParam("uploadingFiles") MultipartFile[] uploadingFiles, ModelMap model) throws Exception {
 		System.out.println("read" + uploadingFiles.length);
 
 		for(MultipartFile uploadedFile : uploadingFiles) {
+			//TODO: file name .doc
 			String name = uploadedFile.getOriginalFilename();
-			System.out.println(name);
-			model.addAttribute("fileNames", name);
+			
+			//считываем файл праметром для построения формы
+			String path = "C:\\Users\\Family\\Documents\\Сахаров\\Documents\\" + name + ".txt";
+			//FileInputStream in = new FileInputStream(new File(path));
+			File f = new File(path);
+			BufferedReader b = new BufferedReader(new FileReader(f));
+            String readLine = "";
+            while ((readLine = b.readLine()) != null) {
+                String arr[] = readLine.split(":");
+                String key = arr[0];
+                String value = arr[1];
+                model.addAttribute(key, value);
+            }
 		}
 	  		
 		return "index";
