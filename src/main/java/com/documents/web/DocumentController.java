@@ -2,8 +2,10 @@ package com.documents.web;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileReader;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -82,37 +84,38 @@ public class DocumentController {
 		return "index";
 	}
 	
-	
 	//загружаем файлы
 	@RequestMapping(value="/read", method = RequestMethod.POST)
 	public String read(@RequestParam("uploadingFiles") MultipartFile[] uploadingFiles, ModelMap model) throws Exception {
-		System.out.println("read" + uploadingFiles.length);
-
+		HashMap<String, String> map = new HashMap<String, String>();
+		
 		for(MultipartFile uploadedFile : uploadingFiles) {
-			//TODO: file name .doc
 			String name = uploadedFile.getOriginalFilename();
-			
+			int i = name.indexOf('.');
+			String formName = name.substring(0, i);
 			//считываем файл праметром для построения формы
-			String path = "C:\\Users\\Family\\Documents\\Сахаров\\Documents\\" + name + ".txt";
-			//FileInputStream in = new FileInputStream(new File(path));
+			String path = "C:\\Users\\Family\\Documents\\Сахаров\\form\\" + formName + ".txt";
 			File f = new File(path);
-			BufferedReader b = new BufferedReader(new FileReader(f));
+			
+			BufferedReader b = new BufferedReader(new InputStreamReader(new FileInputStream(path), "UTF8"));
             String readLine = "";
+            
             while ((readLine = b.readLine()) != null) {
                 String arr[] = readLine.split(":");
                 String key = arr[0];
                 String value = arr[1];
-                model.addAttribute(key, value);
+                map.putIfAbsent(key, value);
             }
 		}
-	  		
+		
+		model.addAttribute("params", map);
 		return "index";
 	}
 
 	@ExceptionHandler(value = Exception.class)  
     public String exceptionHandler(Exception e){  
         return e.getMessage();  
-    } 
+    }
 }
 
 /*

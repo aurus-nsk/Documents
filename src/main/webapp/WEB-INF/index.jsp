@@ -19,26 +19,14 @@
 	
 	<div class="container">
 		<form id="document_form" >
-		
-			<c:forEach items="${params}" var="param">
-        	<div class="form-group row">
-				<label for="id_surname" class="col-sm-2 col-form-label">${param.value}</label>
-				<div class="col-sm-10">
-					<input type="text" class="form-control" id="${param.key}">
+			<c:forEach items="${params}" var="map">
+	        	<div class="form-group row">
+					<label for="id_surname" class="col-sm-2 col-form-label">${map.value}</label>
+					<div class="col-sm-10">
+						<input type="text" class="form-control" id="${map.key}">
+					</div>
 				</div>
-			</div>
     		</c:forEach>
-			
-			<div class="form-group">
-				<label for="id_file_pattern">Файлы шаблона</label>
-				<input type="file" id="fileinput" multiple />
-			</div>
-    
-			<div class="form-group row">
-				<div class="offset-sm-2 col-sm-10">
-				<button class="btn btn-primary" onclick="saveTextAsFile()">Загрузить</button>
-				</div>
-			</div>
 		</form>
 	</div>
 	
