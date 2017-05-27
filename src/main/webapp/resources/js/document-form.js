@@ -6,19 +6,19 @@ $(document).ready(function () {
 });
 
 function fire_ajax_submit() {
-
+	var arr = document.forms["document_form"].getElementsByTagName("input");
 	
-	console.log(document.forms["document_form"].getElementsByTagName("input"));
-	var search = {}
-    search["username"] = $("#username").val();
-
-    $("#btn-search").prop("disabled", true);
+	
+	var result = [];
+	Array.from(arr).forEach(function(item, i, arr) {
+		result.push(item.id +':'+ item.value);
+	});
 
     $.ajax({
         type: "POST",
         contentType: "application/json",
-        url: "/api/search",
-        data: JSON.stringify(search),
+        url: "/upload",
+        data: JSON.stringify(result),
         dataType: 'json',
         cache: false,
         timeout: 600000,

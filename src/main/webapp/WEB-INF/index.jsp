@@ -18,7 +18,7 @@
 	<br/>
 	
 	<div class="container">
-		<form id="document_form" >
+		<form id="document_form" action="/upload">
 			<c:forEach items="${params}" var="map">
 	        	<div class="form-group row">
 					<label for="id_surname" class="col-sm-2 col-form-label">${map.value}</label>
@@ -27,12 +27,18 @@
 					</div>
 				</div>
     		</c:forEach>
+    		
+    		<div class="form-group">
+                <div class="col-sm-offset-2 col-sm-10">
+                    <button type="submit" id="bth-search" class="btn btn-primary btn-lg">
+                    	Сформировать
+                    </button>
+                </div>
+            </div>
 		</form>
 	</div>
 	
-	<input type="hidden" id="id_text"></input>
-	<script type="text/javascript" src="${contextPath}/resources/js/document-form.js"></script>
-	
 	<jsp:include page="footer.jsp"/>
+	<script type="text/javascript" src="${contextPath}/resources/js/document-form.js"></script>
 </body>
 </html>

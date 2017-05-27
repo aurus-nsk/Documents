@@ -3,21 +3,16 @@ package com.documents.web;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Random;
 
-import org.apache.poi.hwpf.HWPFDocument;
-import org.apache.poi.hwpf.usermodel.Range;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
+import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -37,27 +32,21 @@ public class DocumentController {
 		return "index";
     }
 	
-	@RequestMapping(value="/upload", method = RequestMethod.GET)
-	public String upload(@RequestParam("uploadingFiles") MultipartFile[] uploadingFiles, ModelMap model) throws Exception {
+	@RequestMapping(value="/upload", method = RequestMethod.POST, consumes = { "application/json" })
+	public String upload(@RequestBody String params) throws Exception {
 		System.out.println("/upload");
-		//1.read all key words from input
-		List<String> keys = new ArrayList<String>();
-		keys.add("surname");
-		keys.add("name");
-		keys.add("midname");
-
-		//2.read settings
-		Map<String, String> allParams = new HashMap<String, String>();
-		allParams.put("surname", "Фамилия");
-		allParams.put("name", "Имя");
-		allParams.put("midname", "Отчество");
-
-		Map<String, String> formParams = new HashMap<String, String>();
-		for(String key: keys) {
-			String keyReadableName = allParams.get(key);
-			formParams.put(key, keyReadableName);
-		}
-		model.addAttribute("params", formParams);
+		System.out.println(params);
+		String json = params.substring(1, params.length()-1);
+		String arr[] = json.split(",");
+		Map<String, String> map = new HashMap<String, String>();
+		for(int i = 0; i < arr.length; i++) {
+			String item = arr[i].substring(1, params.length()-1);
+			String values[] = item.split(":");
+			map.put(values[0], values[1]);
+		}  
+		
+		/*
+		map.get("")
 
 		for(MultipartFile uploadedFile : uploadingFiles) {
 			HWPFDocument doc = new HWPFDocument(uploadedFile.getInputStream());
@@ -73,12 +62,7 @@ public class DocumentController {
 			String fileName = "C:\\Users\\Family\\Documents\\Сахаров\\Documents\\blank-mesto-zhitelstva" + "" + num +".doc";
 			doc.write(new FileOutputStream(new File(fileName)));
 		}
-	  		
-		//fill out the form
-		
-		//pass all params by json to server
-		
-		//find and replace all params
+	  	*/
 		
 		//save all new files to output
 		return "index";
@@ -94,7 +78,7 @@ public class DocumentController {
 			int i = name.indexOf('.');
 			String formName = name.substring(0, i);
 			//считываем файл праметром для построения формы
-			String path = "C:\\Users\\Family\\Documents\\Сахаров\\form\\" + formName + ".txt";
+			String path = "C:\\Users\\Family\\Documents\\Saharov\\form\\" + formName + ".txt";
 			File f = new File(path);
 			
 			BufferedReader b = new BufferedReader(new InputStreamReader(new FileInputStream(path), "UTF8"));
