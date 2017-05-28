@@ -3,14 +3,20 @@ package com.documents.web;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 import java.util.Map.Entry;
+import java.util.Random;
 
+import org.apache.poi.hwpf.HWPFDocument;
+import org.apache.poi.hwpf.usermodel.Range;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
-import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -33,38 +39,57 @@ public class DocumentController {
     }
 	
 	@RequestMapping(value="/upload", method = RequestMethod.POST, consumes = { "application/json" })
-	public String upload(@RequestBody String params) throws Exception {
+	public String upload(@RequestBody() String params) throws Exception {
 		System.out.println("/upload");
 		System.out.println(params);
-		String json = params.substring(1, params.length()-1);
+		
+		String json = new String(params.substring(1, params.length()-1));
 		String arr[] = json.split(",");
-		Map<String, String> map = new HashMap<String, String>();
-		for(int i = 0; i < arr.length; i++) {
-			String item = arr[i].substring(1, params.length()-1);
-			String values[] = item.split(":");
-			map.put(values[0], values[1]);
-		}  
 		
-		/*
-		map.get("")
-
-		for(MultipartFile uploadedFile : uploadingFiles) {
-			HWPFDocument doc = new HWPFDocument(uploadedFile.getInputStream());
-			Range range = doc.getRange();
+		List<String> list = new ArrayList<String>();
+		list.addAll(Arrays.asList(arr));
+		
+		HashMap<String, String> map = new HashMap<String, String>();
+		List<String> fileNames = new ArrayList<String>();
+		
+		for(String item:list) {
+			String line = new String(item.substring(1, item.length()-1));
+			String values[] = line.split(":");
 			
-			for(Entry<String, String> entry: formParams.entrySet()) {
-				range.replaceText(entry.getKey(), entry.getValue());
+			if(values[0].contains("file_secret")){
+				fileNames.add(new String(values[1]));
+				System.out.println("add " + new String(values[1]));
+			} else {
+				map.put(new String(values[0]), new String(values[1]));
 			}
-			
-			Random r = new Random();
-			int num = r.nextInt();
-			//TODO: surname name year
-			String fileName = "C:\\Users\\Family\\Documents\\Сахаров\\Documents\\blank-mesto-zhitelstva" + "" + num +".doc";
-			doc.write(new FileOutputStream(new File(fileName)));
 		}
-	  	*/
 		
-		//save all new files to output
+		for(String name : fileNames) {
+			System.out.println("name " + name);
+
+			try{
+				FileInputStream in = new FileInputStream(new File("C:\\Users\\Family\\Documents\\Saharov\\patterns\\"+name));
+				HWPFDocument doc = new HWPFDocument(in);
+				Range range = doc.getRange(); 
+				System.out.println("range");
+
+				for(Entry<String, String> entry: map.entrySet()) {
+					System.out.println(entry.getKey() + entry.getValue());
+
+					range.replaceText(entry.getKey(), entry.getValue());
+				}
+				
+				String surname= map.get("surname");
+				String fileName = "C:\\Users\\Family\\Documents\\Saharov\\documents\\"+new Date().getDate() + "_" + name;
+				System.out.println("fileName: " + fileName);
+				doc.write(new FileOutputStream(new File(fileName)));
+			} finally {
+				System.out.println("finally");
+
+			} 
+		}
+		
+		System.out.println("return");
 		return "index";
 	}
 	
@@ -72,9 +97,14 @@ public class DocumentController {
 	@RequestMapping(value="/read", method = RequestMethod.POST)
 	public String read(@RequestParam("uploadingFiles") MultipartFile[] uploadingFiles, ModelMap model) throws Exception {
 		HashMap<String, String> map = new HashMap<String, String>();
+		List<String> list = new ArrayList();
 		
 		for(MultipartFile uploadedFile : uploadingFiles) {
 			String name = uploadedFile.getOriginalFilename();
+			
+			//put name of files 
+			list.add(new String(name));
+			
 			int i = name.indexOf('.');
 			String formName = name.substring(0, i);
 			//считываем файл праметром для построения формы
@@ -93,6 +123,7 @@ public class DocumentController {
 		}
 		
 		model.addAttribute("params", map);
+		model.addAttribute("files", list);
 		return "index";
 	}
 
@@ -101,7 +132,21 @@ public class DocumentController {
         return e.getMessage();  
     }
 }
-
+/* map.get("")
+for(MultipartFile uploadedFile : uploadingFiles) {
+	HWPFDocument doc = new HWPFDocument(uploadedFile.getInputStream());
+	Range range = doc.getRange();
+	
+	for(Entry<String, String> entry: formParams.entrySet()) {
+		range.replaceText(entry.getKey(), entry.getValue());
+	}
+	
+	Random r = new Random();
+	int num = r.nextInt();
+	//TODO: surname name year
+	String fileName = "C:\\Users\\Family\\Documents\\Сахаров\\Documents\\blank-mesto-zhitelstva" + "" + num +".doc";
+	doc.write(new FileOutputStream(new File(fileName)));
+} */
 /*
 FileInputStream in = new FileInputStream(new File("C:\\Users\\Family\\Documents\\Сахаров\\patterns\\blank-mesto-zhitelstva.doc"));
 HWPFDocument doc = new HWPFDocument(in);

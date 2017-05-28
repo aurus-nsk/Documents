@@ -19,6 +19,7 @@
 	
 	<div class="container">
 		<form id="patterns_form" enctype="multipart/form-data" action="/read" method="POST">
+			
 			<div class="form-group">
 				<label for="id_file_pattern">Файлы шаблона</label>
 				<input type="file" name="uploadingFiles" multiple />

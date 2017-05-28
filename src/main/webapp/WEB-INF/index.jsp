@@ -28,6 +28,10 @@
 				</div>
     		</c:forEach>
     		
+    		<c:forEach items="${files}" var="file" varStatus="count">
+				<input type="hidden" id="file_secret_${count.index}" value="${file}">
+    		</c:forEach>
+    		
     		<div class="form-group">
                 <div class="col-sm-offset-2 col-sm-10">
                     <button type="submit" id="bth-search" class="btn btn-primary btn-lg">

@@ -8,7 +8,6 @@ $(document).ready(function () {
 function fire_ajax_submit() {
 	var arr = document.forms["document_form"].getElementsByTagName("input");
 	
-	
 	var result = [];
 	Array.from(arr).forEach(function(item, i, arr) {
 		result.push(item.id +':'+ item.value);
@@ -43,5 +42,4 @@ function fire_ajax_submit() {
 
         }
     });
-
 }
