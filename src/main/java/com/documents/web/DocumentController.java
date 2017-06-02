@@ -6,12 +6,12 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Random;
 
 import org.apache.poi.hwpf.HWPFDocument;
 import org.apache.poi.hwpf.usermodel.Range;
@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 
 @Controller
@@ -39,64 +40,68 @@ public class DocumentController {
     }
 	
 	@RequestMapping(value="/upload", method = RequestMethod.POST, consumes = { "application/json" })
-	public String upload(@RequestBody() String params) throws Exception {
+	public @ResponseBody String upload(@RequestBody List<String> params) throws Exception {
 		System.out.println("/upload");
-		System.out.println(params);
 		
-		String json = new String(params.substring(1, params.length()-1));
-		String arr[] = json.split(",");
+		for(String item : params) {
+			System.out.println(item);
+		}
 		
-		List<String> list = new ArrayList<String>();
-		list.addAll(Arrays.asList(arr));
-		
-		HashMap<String, String> map = new HashMap<String, String>();
+		Map<String, String> map = new LinkedHashMap<String, String>();
 		List<String> fileNames = new ArrayList<String>();
 		
-		for(String item:list) {
-			String line = new String(item.substring(1, item.length()-1));
-			String values[] = line.split(":");
+		for(String item : params) {
+			//String line = new String(item.substring(1, item.length()-1));
+			String values[] = item.split(":");
+			System.out.println("values.length" + values.length);
 			
 			if(values[0].contains("file_secret")){
-				fileNames.add(new String(values[1]));
-				System.out.println("add " + new String(values[1]));
+				fileNames.add(values[1]);
+				//System.out.println("add " + new String(values[1]));
 			} else {
-				map.put(new String(values[0]), new String(values[1]));
+				//System.out.println("add values[0]: "+ values[0]);
+				//System.out.println("add values[1]: "+ values[1]);
+				String key = values[0];
+				String value = values[1];
+				
+				map.put(key, value);
 			}
 		}
 		
 		for(String name : fileNames) {
-			System.out.println("name " + name);
-
+			//System.out.println("name " + name);
 			try{
 				FileInputStream in = new FileInputStream(new File("C:\\Users\\Family\\Documents\\Saharov\\patterns\\"+name));
 				HWPFDocument doc = new HWPFDocument(in);
 				Range range = doc.getRange(); 
-				System.out.println("range");
+				//System.out.println("range");
 
 				for(Entry<String, String> entry: map.entrySet()) {
-					System.out.println(entry.getKey() + entry.getValue());
-
-					range.replaceText(entry.getKey(), entry.getValue());
+					String value = entry.getValue().equals("empty") ? " " : entry.getValue();
+					System.out.println("replace in doc key: " + entry.getKey() + ", with value: " + value);
+					range.replaceText(entry.getKey(), value);
 				}
 				
-				String surname= map.get("surname");
 				String fileName = "C:\\Users\\Family\\Documents\\Saharov\\documents\\"+new Date().getDate() + "_" + name;
-				System.out.println("fileName: " + fileName);
+				System.out.println("output file: " + fileName);
 				doc.write(new FileOutputStream(new File(fileName)));
+				//TODO: move to finally
+				in.close();
+				doc.close();
 			} finally {
-				System.out.println("finally");
-
-			} 
+				//System.out.println("finally");
+			}
 		}
 		
 		System.out.println("return");
-		return "index";
+		return "Success [" + new Date()+"]";
 	}
 	
 	//загружаем файлы
 	@RequestMapping(value="/read", method = RequestMethod.POST)
 	public String read(@RequestParam("uploadingFiles") MultipartFile[] uploadingFiles, ModelMap model) throws Exception {
-		HashMap<String, String> map = new HashMap<String, String>();
+		System.out.println("/read");
+		Map<String, String> map = new LinkedHashMap<String, String>();
 		List<String> list = new ArrayList();
 		
 		for(MultipartFile uploadedFile : uploadingFiles) {
@@ -109,16 +114,21 @@ public class DocumentController {
 			String formName = name.substring(0, i);
 			//считываем файл праметром для построения формы
 			String path = "C:\\Users\\Family\\Documents\\Saharov\\form\\" + formName + ".txt";
+    		//System.out.println(path);
+
 			File f = new File(path);
-			
 			BufferedReader b = new BufferedReader(new InputStreamReader(new FileInputStream(path), "UTF8"));
             String readLine = "";
-            
+            int count = 0;
             while ((readLine = b.readLine()) != null) {
-                String arr[] = readLine.split(":");
-                String key = arr[0];
-                String value = arr[1];
-                map.putIfAbsent(key, value);
+        		System.out.println(readLine);
+            	if( !readLine.isEmpty() && count > 0) {
+            		String arr[] = readLine.split(":");
+            		String key = arr[0];
+            		String value = arr[1];
+            		map.putIfAbsent(key, value);
+            	}
+            	++count;
             }
 		}
 		
@@ -196,3 +206,64 @@ doc.write(new FileOutputStream(new File(fileName)));
 			//IOUtils.copy(input, output);
       //}
 		*/
+
+
+
+
+/*
+@RequestMapping(value="/upload", method = RequestMethod.POST, consumes = { "application/json" })
+	public String upload(@RequestBody() String params) throws Exception {
+		System.out.println("/upload");
+		System.out.println(params);
+		
+		String json = new String(params.substring(1, params.length()-1));
+		String arr[] = json.split(",");
+		
+		List<String> list = new ArrayList<String>();
+		list.addAll(Arrays.asList(arr));
+		
+		HashMap<String, String> map = new HashMap<String, String>();
+		List<String> fileNames = new ArrayList<String>();
+		
+		for(String item:list) {
+			String line = new String(item.substring(1, item.length()-1));
+			String values[] = line.split(":");
+			
+			if(values[0].contains("file_secret")){
+				fileNames.add(values[1]);
+				//System.out.println("add " + new String(values[1]));
+			} else {
+				System.out.println(values[0]);
+				map.put(new String(values[0].getBytes(), "UTF8"), values[1]);
+			}
+		}
+		
+		for(String name : fileNames) {
+			//System.out.println("name " + name);
+
+			try{
+				FileInputStream in = new FileInputStream(new File("C:\\Users\\Family\\Documents\\Saharov\\patterns\\"+name));
+				HWPFDocument doc = new HWPFDocument(in);
+				Range range = doc.getRange(); 
+				//System.out.println("range");
+
+				for(Entry<String, String> entry: map.entrySet()) {
+					System.out.println("replace in doc key: " + entry.getKey() + ", with value: " + entry.getValue());
+					range.replaceText(entry.getKey(), entry.getValue());
+				}
+				
+				String fileName = "C:\\Users\\Family\\Documents\\Saharov\\documents\\"+new Date().getDate() + "_" + name;
+				System.out.println("output file: " + fileName);
+				doc.write(new FileOutputStream(new File(fileName)));
+				//TODO: move to finally
+				in.close();
+				doc.close();
+			} finally {
+				//System.out.println("finally");
+			} 
+		}
+		
+		System.out.println("return");
+		return "index";
+	}
+*/

@@ -10,7 +10,11 @@ function fire_ajax_submit() {
 	
 	var result = [];
 	Array.from(arr).forEach(function(item, i, arr) {
-		result.push(item.id +':'+ item.value);
+		var val = 'empty';
+		if(item.value != false) {
+			val = item.value;
+		}
+		result.push(item.id+':'+val);
 	});
 
     $.ajax({
@@ -18,28 +22,18 @@ function fire_ajax_submit() {
         contentType: "application/json",
         url: "/upload",
         data: JSON.stringify(result),
-        dataType: 'json',
+        dataType: 'text',
         cache: false,
         timeout: 600000,
         success: function (data) {
-
-            var json = "<h4>Ajax Response</h4><pre>"
-                + JSON.stringify(data, null, 4) + "</pre>";
-            $('#feedback').html(json);
-
+            var json = '<div class="alert alert-success" role="alert">' + data + '</div>';
+            $('#result_msg').html(json);
             console.log("SUCCESS : ", data);
-            $("#btn-search").prop("disabled", false);
-
         },
-        error: function (e) {
-
-            var json = "<h4>Ajax Response</h4><pre>"
-                + e.responseText + "</pre>";
-            $('#feedback').html(json);
-
-            console.log("ERROR : ", e);
-            $("#btn-search").prop("disabled", false);
-
+        error: function (data) {
+        	var json = '<div class="alert alert-danger" role="alert">' + data + '</div>';
+            $('#result_msg').html(json);
+            console.log("ERROR : ", data);
         }
     });
 }
