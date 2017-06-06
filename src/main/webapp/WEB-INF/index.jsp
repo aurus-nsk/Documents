@@ -32,6 +32,8 @@
 				<input type="hidden" id="file_secret_${count.index}" value="${file}">
     		</c:forEach>
     		
+    		
+	
     		<div class="form-group">
                 <div class="col-sm-offset-2 col-sm-10">
                     <button type="submit" id="bth-search" class="btn btn-primary btn-lg">
@@ -41,11 +43,12 @@
             </div>
 		</form>
 	</div>
-	</br>
-	<div id="result_msg">
- 		<!-- message from JS here -->
+	</br></hr>
+	<div class="container">
+		<div id="result_msg">
+ 			<!-- message from JS here -->
+		</div>
 	</div>
-	
 	<jsp:include page="footer.jsp"/>
 	<script type="text/javascript" src="${contextPath}/resources/js/document-form.js"></script>
 </body>

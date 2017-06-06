@@ -26,8 +26,10 @@ function fire_ajax_submit() {
         cache: false,
         timeout: 600000,
         success: function (data) {
-            var json = '<div class="alert alert-success" role="alert">' + data + '</div>';
+            var json = '<div class="alert alert-success" role="alert">' + data + '<a id="link-index" href="/"><h1>Заполнить новый документ</h1></a></div>';
+            
             $('#result_msg').html(json);
+            window.scrollTo(0,document.body.scrollHeight);
             console.log("SUCCESS : ", data);
         },
         error: function (data) {

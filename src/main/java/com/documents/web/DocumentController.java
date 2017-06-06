@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedHashMap;
@@ -40,56 +41,60 @@ public class DocumentController {
 		return "index";
     }
 	
+	@SuppressWarnings("deprecation")
 	@RequestMapping(value="/upload", method = RequestMethod.POST, consumes = { "application/json" })
 	public @ResponseBody String upload(@RequestBody List<String> params) throws Exception {
 		System.out.println("/upload");
 		
-		/*for(String item : params) {
-			System.out.println(item);
-		}*/
-		
 		Map<String, String> map = new LinkedHashMap<String, String>();
 		List<String> fileNames = new ArrayList<String>();
 		
+		//get parameters from form
 		for(String item : params) {
-			//String line = new String(item.substring(1, item.length()-1));
 			String values[] = item.split(":");
-			System.out.println("values.length" + values.length);
-			
 			if(values[0].contains("file_secret")){
 				fileNames.add(values[1]);
 			} else {
-				String key = values[0];
-				String value = values[1];
-				map.put(key, value);
+				map.put(values[0],  values[1]);
 			}
 		}
 		
+		//replace key words in doc file with parameters from form
 		for(String name : fileNames) {
-			//System.out.println("name " + name);
-			try{
-				FileInputStream in = new FileInputStream(new File(appPath+"\\Saharov\\patterns\\"+name));
-				HWPFDocument doc = new HWPFDocument(in);
+			try(FileInputStream in = new FileInputStream(new File(appPath+"\\patterns\\"+name));
+				HWPFDocument doc = new HWPFDocument(in);) {
+				
 				Range range = doc.getRange(); 
-				//System.out.println("range");
 
 				for(Entry<String, String> entry: map.entrySet()) {
 					String value = entry.getValue().equals("empty") ? " " : entry.getValue();
 					System.out.println("replace in doc key: " + entry.getKey() + ", with value: " + value);
 					range.replaceText(entry.getKey(), value);
 				}
+				String surname = map.get("{surname}");
+				surname = surname.equals("empty") ? " " : surname
+						;
+				String fileName = appPath+"\\documents\\";
+				if (surname != null && !surname.isEmpty()) {
+					fileName = fileName + surname;
+					System.out.println("filename: "  + fileName);
+				}
+				fileName = fileName + "_" + new Date().getDate()+"_"+new Date().getMonth()+"_"+new Date().getYear();
+				fileName = fileName + "_" + name;
 				
-				String fileName = appPath+"\\Saharov\\documents\\"+new Date().getDate() + "_" + name;
 				System.out.println("output file: " + fileName);
-				doc.write(new FileOutputStream(new File(fileName)));
+				try (OutputStream out = new FileOutputStream(new File(fileName))) {
+					doc.write(out);
+					out.flush();
+					out.close();
+				}
+				
 				in.close();
 				doc.close();
-			} finally {
-				//System.out.println("finally");
 			}
 		}
 		
-		System.out.println("return");
+		System.gc();
 		return "Success [" + new Date()+"]";
 	}
 	
@@ -98,7 +103,7 @@ public class DocumentController {
 	public String read(@RequestParam("uploadingFiles") MultipartFile[] uploadingFiles, ModelMap model) throws Exception {
 		System.out.println("/read");
 		Map<String, String> map = new LinkedHashMap<String, String>();
-		List<String> list = new ArrayList();
+		List<String> list = new ArrayList<String>();
 		
 		for(MultipartFile uploadedFile : uploadingFiles) {
 			String name = uploadedFile.getOriginalFilename();
@@ -109,24 +114,24 @@ public class DocumentController {
 			int i = name.indexOf('.');
 			String formName = name.substring(0, i);
 			//считываем файл праметром для построения формы
-			System.out.println("appPath"+appPath);
-			String path = appPath + "\\Saharov\\form\\" + formName + ".txt";
+			//System.out.println("appPath"+appPath);
+			String path = appPath + "\\form\\" + formName + ".txt";
     		//System.out.println(path);
 
-			File f = new File(path);
-			BufferedReader b = new BufferedReader(new InputStreamReader(new FileInputStream(path), "UTF8"));
-            String readLine = "";
-            int count = 0;
-            while ((readLine = b.readLine()) != null) {
-        		System.out.println(readLine);
-            	if( !readLine.isEmpty() && count > 0) {
-            		String arr[] = readLine.split(":");
-            		String key = arr[0];
-            		String value = arr[1];
-            		map.putIfAbsent(key, value);
-            	}
-            	++count;
-            }
+			try(BufferedReader b = new BufferedReader(new InputStreamReader(new FileInputStream(path), "UTF8"));) {
+				String readLine = "";
+				int count = 0;
+				while ((readLine = b.readLine()) != null) {
+					//System.out.println(readLine);
+					if( !readLine.isEmpty() && count > 0) {
+						String arr[] = readLine.split(":");
+						String key = arr[0];
+						String value = arr[1];
+						map.putIfAbsent(key, value);
+					}
+					++count;
+				}
+			}
 		}
 		
 		model.addAttribute("params", map);
